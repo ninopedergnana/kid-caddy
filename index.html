@@ -158,7 +158,11 @@ nav svg{width:23px; height:23px}
 #modal{
   background:var(--card); border-radius:20px 20px 0 0; width:100%; max-width:480px;
   padding:20px 18px calc(20px + env(safe-area-inset-bottom)); animation:up .18s ease-out;
+  max-height:88vh; max-height:88dvh; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
 }
+body.modal-open{overflow:hidden; touch-action:none}
+body.modal-open #modal{touch-action:pan-y}
 @keyframes up{from{transform:translateY(30px); opacity:.5} to{transform:translateY(0); opacity:1}}
 #modal h3{margin:0 0 10px; font-size:1.1rem}
 .confirm-big{font-size:1.6rem; font-weight:800; text-align:center; margin:14px 0}
@@ -381,8 +385,8 @@ const PEN_MORE = [ {id:"e5", n:2, k:"pE5", rule:"e5"}, {id:"wrong", n:2, k:"pWro
 
 /* ================= MODAL ================= */
 const mbg = document.getElementById("modal-bg"), mbox = document.getElementById("modal");
-function modal(html){ mbox.innerHTML = html; mbg.classList.add("show"); }
-function closeModal(){ mbg.classList.remove("show"); mbox.innerHTML=""; }
+function modal(html){ mbox.innerHTML = html; mbg.classList.add("show"); document.body.classList.add("modal-open"); mbox.scrollTop = 0; }
+function closeModal(){ mbg.classList.remove("show"); mbox.innerHTML=""; document.body.classList.remove("modal-open"); }
 mbg.addEventListener("click", e=>{ if(e.target===mbg) closeModal(); });
 
 /* ================= NAV / RENDER ================= */
