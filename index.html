@@ -177,7 +177,20 @@ body.modal-open #modal{touch-action:pan-y}
 <div id="modal-bg"><div id="modal"></div></div>
 <script>
 "use strict";
-const APP_VERSION = "1.3";
+const APP_VERSION = "1.4";
+/* Preloaded Swiss courses. flag: null = verified, "si" = stroke index unverified, "fill" = hole data not public, user completes */
+const PRELOADED = [
+ { name:"Golfclub Interlaken-Unterseen", flag:null,
+   pars:[4,3,4,5,4,4,4,3,5,4,5,4,4,3,4,5,3,4],
+   si:  [2,18,6,8,10,14,12,16,4,5,7,9,11,13,15,1,17,3] },
+ { name:"Golfpark Winterberg", flag:"si",
+   pars:[5,3,4,3,4,4,4,4,4],
+   si:  [2,3,8,9,7,4,6,1,5] },
+ { name:"Golfclub Aaretal (Kiesen)", flag:"si",
+   pars:[4,4,3,3,3,4,3,4,3],
+   si:  [1,2,3,4,5,6,7,8,9] },
+ { name:"Golfclub Thunersee", flag:"fill", n:9 }
+];
 /* ================= I18N ================= */
 const T = {
 de: {
@@ -216,6 +229,11 @@ de: {
   edit:"Bearbeiten", delete:"Löschen", deleteCourseConfirm:"Diesen Platz löschen? Gespeicherte Runden bleiben erhalten.",
   nameMissing:"Bitte einen Namen eingeben.", siWarn:"Hinweis: Stroke-Index-Werte sind nicht eindeutig (1–{n} je einmal empfohlen).",
   holesLabel:"Löcher", language:"Sprache",
+  preTitle:"Vorinstallierte Plätze", preAdd:"Hinzufügen", preAdded:"Hinzugefügt",
+  preCheckSi:"SI prüfen", preFill:"Daten ergänzen", preVerified:"Verifiziert",
+  preHint:"Hinzugefügte Plätze erscheinen unter «Meine Plätze» und sind dort frei bearbeitbar.",
+  noteSi:"Par-Werte sind verifiziert. Der Stroke Index stammt aus Community-Quellen bzw. ist als Standard gesetzt – bitte einmalig mit der Scorekarte des Clubs abgleichen und bei Bedarf über «Bearbeiten» anpassen.",
+  noteFill:"Die Loch-Daten dieses Clubs sind nicht öffentlich zugänglich. Bitte Par und Stroke Index einmalig ab der Club-Scorekarte erfassen.",
   searchPh:"Bio-Zone, Weg, roter Pfahl …", fAll:"Alle", fPen:"Mit Strafe", fFree:"Straflos",
   bP1:"+1 Schlag", bP2:"+2 Schläge", bFree:"Straflos", bDep:"Je nach Fall", bInfo:"Gut zu wissen",
   noRuleFound:"Nichts gefunden.",
@@ -271,6 +289,11 @@ en: {
   edit:"Edit", delete:"Delete", deleteCourseConfirm:"Delete this course? Saved rounds are kept.",
   nameMissing:"Please enter a name.", siWarn:"Note: stroke index values are not unique (1–{n} once each recommended).",
   holesLabel:"holes", language:"Language",
+  preTitle:"Preloaded courses", preAdd:"Add", preAdded:"Added",
+  preCheckSi:"Check SI", preFill:"Complete data", preVerified:"Verified",
+  preHint:"Added courses appear under \u201cMy courses\u201d and can be edited freely there.",
+  noteSi:"Par values are verified. The stroke index comes from community sources or is set as a default \u2013 please check it once against the club's scorecard and adjust via \u201cEdit\u201d if needed.",
+  noteFill:"This club's hole data is not publicly available. Please enter par and stroke index once from the club's scorecard.",
   searchPh:"Bio zone, cart path, red stakes …", fAll:"All", fPen:"With penalty", fFree:"Free relief",
   bP1:"+1 stroke", bP2:"+2 strokes", bFree:"Free", bDep:"It depends", bInfo:"Good to know",
   noRuleFound:"Nothing found.",
@@ -326,6 +349,11 @@ fr: {
   edit:"Modifier", delete:"Supprimer", deleteCourseConfirm:"Supprimer ce parcours ? Les parties enregistrées sont conservées.",
   nameMissing:"Veuillez saisir un nom.", siWarn:"Remarque : les stroke index ne sont pas uniques (1–{n} une fois chacun recommandé).",
   holesLabel:"trous", language:"Langue",
+  preTitle:"Parcours préinstallés", preAdd:"Ajouter", preAdded:"Ajouté",
+  preCheckSi:"Vérifier SI", preFill:"Compléter", preVerified:"Vérifié",
+  preHint:"Les parcours ajoutés apparaissent sous « Mes parcours » et peuvent y être modifiés librement.",
+  noteSi:"Les pars sont vérifiés. Le stroke index provient de sources communautaires ou est une valeur par défaut \u2013 veuillez le comparer une fois avec la carte de score du club et l'ajuster via « Modifier » si nécessaire.",
+  noteFill:"Les données des trous de ce club ne sont pas publiques. Veuillez saisir une fois le par et le stroke index depuis la carte de score du club.",
   searchPh:"Zone bio, chemin, piquets rouges …", fAll:"Tout", fPen:"Avec pénalité", fFree:"Sans pénalité",
   bP1:"+1 coup", bP2:"+2 coups", bFree:"Sans pénalité", bDep:"Selon le cas", bInfo:"Bon à savoir",
   noRuleFound:"Rien trouvé.",
@@ -639,6 +667,18 @@ function renderCourses(){
     <h2>${esc(t("myCourses"))}</h2>
     <div class="card">${items || `<p class="muted" style="margin:4px 0">${esc(t("noCourses"))}</p>`}
       <button class="btn-primary btn-block" style="margin-top:10px" onclick="editCourse(null)">＋ ${esc(t("newCourse"))}</button></div>
+    <h2>${esc(t("preTitle"))}</h2>
+    <div class="card">${PRELOADED.map((p,i)=>{
+      const added = S.courses.some(c=>c.name===p.name);
+      const badge = p.flag==="si" ? `<span class="badge b-dep">${esc(t("preCheckSi"))}</span>`
+                  : p.flag==="fill" ? `<span class="badge b-info">${esc(t("preFill"))}</span>` : `<span class="badge b-free">${esc(t("preVerified"))}</span>`;
+      return `<div class="course-item"><div><b>${esc(p.name)}</b>
+        <div class="muted small">${(p.pars?p.pars.length:p.n)} ${esc(t("holesLabel"))} · ${badge}</div></div>
+        ${added ? `<span class="muted small">✓ ${esc(t("preAdded"))}</span>`
+                : `<button class="small" onclick="addPre(${i})">${esc(t("preAdd"))}</button>`}</div>`;
+    }).join("")}
+      <p class="muted small" style="margin:10px 0 0">${esc(t("preHint"))}</p>
+    </div>
     <h2>${esc(t("language"))}</h2>
     <div class="card"><div class="lang-row">
       ${["de","en","fr"].map(l=>`<button class="${S.lang===l?"on":""}" onclick="setLang('${l}')">${l.toUpperCase()}</button>`).join("")}
@@ -653,6 +693,18 @@ function renderCourses(){
     <p class="muted small" style="text-align:center">Stableford Caddy v${APP_VERSION}</p>`;
 }
 function setLang(l){ S.lang=l; save(); render(); }
+function addPre(i){
+  const p = PRELOADED[i];
+  if(p.flag==="fill"){
+    modal(courseForm({ id:null, name:p.name, holes:Array.from({length:p.n},(_,k)=>({par:4,si:k+1})) }, p.n));
+    const w=document.getElementById("ce-warn"); if(w) w.textContent = t("noteFill");
+    return;
+  }
+  S.courses.push({ id:uid(), name:p.name, holes:p.pars.map((par,k)=>({par, si:p.si[k]})) });
+  save(); renderCourses();
+  if(p.flag==="si") modal(`<h3>${esc(p.name)}</h3><p>${esc(t("noteSi"))}</p>
+    <button class="btn-primary btn-block" onclick="closeModal()">OK</button>`);
+}
 function editCourse(id){
   const c = id ? S.courses.find(x=>x.id===id) : null;
   const n = c ? c.holes.length : 18;
