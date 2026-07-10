@@ -657,21 +657,23 @@ function editCourse(id){
   modal(courseForm(c, n));
 }
 function courseForm(c, n){
-  const holes = c ? c.holes : Array.from({length:n},(_,i)=>({par:4, si:i+1}));
-  const rows = holes.slice(0,n).map((h,i)=>`<div class="hole-row"><div class="hn">${i+1}</div>
+  const cid = (c && c.id) ? c.id : "";
+  const base = c ? c.holes : [];
+  const holes = Array.from({length:n},(_,i)=> base[i] ? base[i] : {par:4, si:i+1});
+  const rows = holes.map((h,i)=>`<div class="hole-row"><div class="hn">${i+1}</div>
     <select id="ce-par-${i}">${[3,4,5,6].map(p=>`<option ${h.par===p?"selected":""}>${p}</option>`).join("")}</select>
-    <input id="ce-si-${i}" type="number" inputmode="numeric" min="1" max="${n}" value="${h.si||i+1}" aria-label="SI"></div>`).join("");
-  return `<h3>${c?esc(t("edit")):esc(t("newCourse"))}</h3>
+    <input id="ce-si-${i}" type="number" inputmode="numeric" min="1" max="${n}" value="${Math.min(n,h.si||i+1)}" aria-label="SI"></div>`).join("");
+  return `<h3>${cid?esc(t("edit")):esc(t("newCourse"))}</h3>
     <label>${esc(t("courseName"))}</label><input id="ce-name" value="${c?esc(c.name):""}" placeholder="Golfpark …">
     <label>${esc(t("holeCount"))}</label>
-    <select id="ce-n" onchange="modal(courseForm(collectCourse('${c?c.id:""}',false), parseInt(this.value,10)))">
+    <select id="ce-n" onchange="modal(courseForm(collectCourse('${cid}',false), parseInt(this.value,10)))">
       <option value="9" ${n===9?"selected":""}>9</option><option value="18" ${n===18?"selected":""}>18</option></select>
     <div class="hole-row" style="margin-top:12px"><div></div><label style="margin:0">${esc(t("par"))}</label><label style="margin:0">${esc(t("si"))}</label></div>
     ${rows}
     <button class="btn-ghost btn-block small" onclick="quickSi(${n})">${esc(t("quickSi"))}</button>
     <div id="ce-warn" class="muted small" style="color:var(--amber)"></div>
     <div class="util-grid" style="margin-top:10px"><button onclick="closeModal()">${esc(t("cancel"))}</button>
-      <button class="btn-primary" onclick="saveCourse('${c?c.id:""}')">${esc(t("save"))}</button></div>`;
+      <button class="btn-primary" onclick="saveCourse('${cid}')">${esc(t("save"))}</button></div>`;
 }
 function quickSi(n){ for(let i=0;i<n;i++){ const el=document.getElementById("ce-si-"+i); if(el) el.value=i+1; } }
 function collectCourse(id, strict){
@@ -694,7 +696,8 @@ function saveCourse(id){
     if(w.dataset.warned!=="1"){ w.textContent = tf("siWarn",{n}); w.dataset.warned="1"; return; }
   }
   c.name=c.name.trim();
-  if(id){ const i=S.courses.findIndex(x=>x.id===id); c.id=id; S.courses[i]=c; }
+  const i = id ? S.courses.findIndex(x=>x.id===id) : -1;
+  if(i>=0){ c.id=id; S.courses[i]=c; }
   else { c.id=uid(); S.courses.push(c); }
   save(); closeModal(); renderCourses();
 }
