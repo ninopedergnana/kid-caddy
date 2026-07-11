@@ -36,11 +36,11 @@ button{
   touch-action:manipulation;
 }
 button:active{transform:scale(.975)}
-input,select{
+input,select,textarea{
   font:inherit; border:1px solid var(--line); border-radius:10px; background:var(--card);
   color:var(--ink); padding:11px 12px; width:100%;
 }
-input:focus,select:focus{outline:2px solid var(--green); outline-offset:1px; border-color:var(--green)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--green); outline-offset:1px; border-color:var(--green)}
 label{display:block; font-size:.85rem; font-weight:600; color:var(--ink-2); margin:.9rem 0 .3rem}
 .card{background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px; margin-bottom:12px}
 .muted{color:var(--ink-3); font-size:.85rem}
@@ -177,7 +177,7 @@ body.modal-open #modal{touch-action:pan-y}
 <div id="modal-bg"><div id="modal"></div></div>
 <script>
 "use strict";
-const APP_VERSION = "1.4";
+const APP_VERSION = "1.5";
 /* Preloaded Swiss courses. flag: null = verified, "si" = stroke index unverified, "fill" = hole data not public, user completes */
 const PRELOADED = [
  { name:"Golfclub Interlaken-Unterseen", flag:null,
@@ -189,7 +189,11 @@ const PRELOADED = [
  { name:"Golfclub Aaretal (Kiesen)", flag:"si",
    pars:[4,4,3,3,3,4,3,4,3],
    si:  [1,2,3,4,5,6,7,8,9] },
- { name:"Golfclub Thunersee", flag:"fill", n:9 }
+ { name:"Golfclub Thunersee", flag:"fill", n:9 },
+ { name:"Lipperswil \u2013 Schwarzebach + Burkert", flag:"si",
+   pars:[4,4,5,4,4,3,5,3,4,4,5,4,5,3,5,3,4,4],
+   si:  [10,16,2,14,6,12,8,18,4,15,5,11,7,17,1,9,13,3] },
+ { name:"Lipperswil \u2013 Feldgarten", flag:"fill", n:9 }
 ];
 /* ================= I18N ================= */
 const T = {
@@ -234,6 +238,19 @@ de: {
   preHint:"Hinzugefügte Plätze erscheinen unter «Meine Plätze» und sind dort frei bearbeitbar.",
   noteSi:"Par-Werte sind verifiziert. Der Stroke Index stammt aus Community-Quellen bzw. ist als Standard gesetzt – bitte einmalig mit der Scorekarte des Clubs abgleichen und bei Bedarf über «Bearbeiten» anpassen.",
   noteFill:"Die Loch-Daten dieses Clubs sind nicht öffentlich zugänglich. Bitte Par und Stroke Index einmalig ab der Club-Scorekarte erfassen.",
+  fmt:"Zählformat", fStb:"Stableford", fStr:"Zählspiel (Netto)", fPb:"Gegen Par", fMp:"Matchplay",
+  startAt:"Start bei Loch", hcp18:"18-Loch-Handicap", hcpUsed:"Vorgabe für diese Runde",
+  hcpAuto:"automatisch die Hälfte – bei Bedarf anpassen", oppName:"Gegner (optional)",
+  noteBtn:"Notiz", notePh:"z.B. Drive links halten, Eisen 7 reicht", noteTitle:"Notiz zu Loch {h}",
+  projStb:"Auf Kurs für {n} Pkt.", projAfter:"{d} nach {m} Löchern",
+  mpUp:"{n} auf", mpDown:"{n} ab", mpAS:"All Square", toPlay:"{n} zu spielen",
+  mpQ:"Wie ging das Loch aus?", mpWon:"Gewonnen", mpHalf:"Geteilt", mpLost:"Verloren",
+  netLabel:"Netto", colNet:"Netto", colPb:"±", colMp:"Erg.",
+  share:"Teilen", copied:"Zusammenfassung kopiert – einfach im Chat einfügen.",
+  statsTitle:"Statistik", stTrend:"Letzte Stableford-Runden", stAvg18:"Ø Punkte 18-Loch", stAvg9:"Ø Punkte 9-Loch",
+  stPen:"Ø Strafschläge pro Runde", stPickup:"Gestrichene Löcher", stCourses:"Ø Punkte pro Platz",
+  stWorst:"Deine teuersten Löcher", stWorstHint:"ab 2 Stableford-Runden auf demselben Platz",
+  backupTitle:"Kurz sichern?", backupMsg:"Das war deine {n}. Runde – ein guter Moment für ein Backup deiner Daten.", later:"Später",
   searchPh:"Bio-Zone, Weg, roter Pfahl …", fAll:"Alle", fPen:"Mit Strafe", fFree:"Straflos",
   bP1:"+1 Schlag", bP2:"+2 Schläge", bFree:"Straflos", bDep:"Je nach Fall", bInfo:"Gut zu wissen",
   noRuleFound:"Nichts gefunden.",
@@ -294,6 +311,19 @@ en: {
   preHint:"Added courses appear under \u201cMy courses\u201d and can be edited freely there.",
   noteSi:"Par values are verified. The stroke index comes from community sources or is set as a default \u2013 please check it once against the club's scorecard and adjust via \u201cEdit\u201d if needed.",
   noteFill:"This club's hole data is not publicly available. Please enter par and stroke index once from the club's scorecard.",
+  fmt:"Scoring format", fStb:"Stableford", fStr:"Stroke play (net)", fPb:"Against par", fMp:"Match play",
+  startAt:"Start at hole", hcp18:"18-hole handicap", hcpUsed:"Strokes for this round",
+  hcpAuto:"automatically halved \u2013 adjust if needed", oppName:"Opponent (optional)",
+  noteBtn:"Note", notePh:"e.g. keep drive left, 7-iron is enough", noteTitle:"Note for hole {h}",
+  projStb:"On pace for {n} pts", projAfter:"{d} after {m} holes",
+  mpUp:"{n} up", mpDown:"{n} down", mpAS:"All square", toPlay:"{n} to play",
+  mpQ:"How did the hole go?", mpWon:"Won", mpHalf:"Halved", mpLost:"Lost",
+  netLabel:"Net", colNet:"Net", colPb:"±", colMp:"Res.",
+  share:"Share", copied:"Summary copied \u2013 just paste it into your chat.",
+  statsTitle:"Statistics", stTrend:"Recent Stableford rounds", stAvg18:"Avg points 18 holes", stAvg9:"Avg points 9 holes",
+  stPen:"Avg penalty strokes per round", stPickup:"Picked-up holes", stCourses:"Avg points per course",
+  stWorst:"Your most expensive holes", stWorstHint:"from 2+ Stableford rounds on the same course",
+  backupTitle:"Quick backup?", backupMsg:"That was round no. {n} \u2013 a good moment to back up your data.", later:"Later",
   searchPh:"Bio zone, cart path, red stakes …", fAll:"All", fPen:"With penalty", fFree:"Free relief",
   bP1:"+1 stroke", bP2:"+2 strokes", bFree:"Free", bDep:"It depends", bInfo:"Good to know",
   noRuleFound:"Nothing found.",
@@ -354,6 +384,19 @@ fr: {
   preHint:"Les parcours ajoutés apparaissent sous « Mes parcours » et peuvent y être modifiés librement.",
   noteSi:"Les pars sont vérifiés. Le stroke index provient de sources communautaires ou est une valeur par défaut \u2013 veuillez le comparer une fois avec la carte de score du club et l'ajuster via « Modifier » si nécessaire.",
   noteFill:"Les données des trous de ce club ne sont pas publiques. Veuillez saisir une fois le par et le stroke index depuis la carte de score du club.",
+  fmt:"Formule de jeu", fStb:"Stableford", fStr:"Stroke play (net)", fPb:"Contre par", fMp:"Match play",
+  startAt:"Départ au trou", hcp18:"Handicap 18 trous", hcpUsed:"Coups rendus pour cette partie",
+  hcpAuto:"automatiquement divisé par deux \u2013 ajustable", oppName:"Adversaire (optionnel)",
+  noteBtn:"Note", notePh:"p.ex. drive à gauche, fer 7 suffit", noteTitle:"Note pour le trou {h}",
+  projStb:"En route vers {n} pts", projAfter:"{d} après {m} trous",
+  mpUp:"{n} up", mpDown:"{n} down", mpAS:"All square", toPlay:"{n} à jouer",
+  mpQ:"Comment s'est terminé le trou ?", mpWon:"Gagné", mpHalf:"Partagé", mpLost:"Perdu",
+  netLabel:"Net", colNet:"Net", colPb:"±", colMp:"Rés.",
+  share:"Partager", copied:"Résumé copié \u2013 collez-le dans votre chat.",
+  statsTitle:"Statistiques", stTrend:"Dernières parties Stableford", stAvg18:"Moy. points 18 trous", stAvg9:"Moy. points 9 trous",
+  stPen:"Moy. pénalités par partie", stPickup:"Trous ramassés", stCourses:"Moy. points par parcours",
+  stWorst:"Tes trous les plus coûteux", stWorstHint:"dès 2 parties Stableford sur le même parcours",
+  backupTitle:"Petite sauvegarde ?", backupMsg:"C'était ta partie n° {n} \u2013 le bon moment pour sauvegarder tes données.", later:"Plus tard",
   searchPh:"Zone bio, chemin, piquets rouges …", fAll:"Tout", fPen:"Avec pénalité", fFree:"Sans pénalité",
   bP1:"+1 coup", bP2:"+2 coups", bFree:"Sans pénalité", bDep:"Selon le cas", bInfo:"Bon à savoir",
   noRuleFound:"Rien trouvé.",
@@ -441,26 +484,58 @@ function render(){
 }
 
 /* ================= PLAY ================= */
+let pendingBackup = false;
+function fmtName(f){ return {stb:t("fStb"), str:t("fStr"), pb:t("fPb"), mp:t("fMp")}[f||"stb"]; }
+function roundTotals(o){
+  const done = o.cur!==undefined ? o.holes.filter(x=>x.done) : o.holes;
+  const pts = done.reduce((s,x)=>s+x.pts,0);
+  const played = done.filter(x=>!x.pickedUp);
+  const gross = played.reduce((s,x)=>s+x.s+x.p,0);
+  const par = played.reduce((s,x)=>s+x.par,0);
+  const recv = played.reduce((s,x)=>s+x.recv,0);
+  const pb = done.reduce((s,x)=>s+(x.pb||0),0);
+  const w=done.filter(x=>x.mp==="w").length, l=done.filter(x=>x.mp==="l").length, hh=done.filter(x=>x.mp==="h").length;
+  return {n:done.length, pts, gross, net:gross-recv, diff:gross-par, netDiff:gross-recv-par, pb, w, l, h:hh};
+}
+function sgn(n){ return n>0? "+"+n : ""+n; }
+function mainTotal(o){
+  const r = roundTotals(o), f = o.format||"stb";
+  if(f==="stb") return r.pts+" "+t("ptsShort");
+  if(f==="str") return r.n ? sgn(r.netDiff)+" "+t("netLabel") : "\u00b10 "+t("netLabel");
+  if(f==="pb") return sgn(r.pb);
+  const d = r.w-r.l;
+  return d===0 ? t("mpAS") : (d>0 ? tf("mpUp",{n:d}) : tf("mpDown",{n:-d}));
+}
+function projText(o){
+  const r = roundTotals(o), f = o.format||"stb", rem = o.holes.length - r.n;
+  if(f==="stb") return tf("projStb",{n: r.pts + 2*rem});
+  if(f==="str") return tf("projAfter",{d:sgn(r.diff), m:r.n});
+  if(f==="pb") return tf("projAfter",{d:sgn(r.pb), m:r.n});
+  return tf("toPlay",{n:rem});
+}
 function renderPlay(){
   const a = S.active;
   if(!a){ renderStart(); return; }
   if(a.cur >= a.holes.length){ renderFinished(); return; }
+  const f = a.format||"stb";
   const h = a.holes[a.cur];
   const strokes = h.s + h.p;
   const maxGross = h.par + h.recv + 1;
   const recvTxt = h.recv===0 ? t("strokeRecvNone") : (h.recv===1 ? t("strokeRecvOne") : tf("strokeRecvMany",{n:h.recv}));
-  const donePts = a.holes.filter(x=>x.done).reduce((s,x)=>s+x.pts,0);
   const noPts = strokes >= maxGross;
-  const untilHtml = noPts
-    ? `<div class="until warn"><b>${esc(t("noPtsLeft"))}</b>${esc(t("pickupHint"))}</div>`
-    : `<div class="until">${esc(t("ptsUntil"))}<b>${maxGross} ${esc(t("strokesWord"))}</b></div>`;
+  const untilHtml = f==="stb"
+    ? (noPts ? `<div class="until warn"><b>${esc(t("noPtsLeft"))}</b>${esc(t("pickupHint"))}</div>`
+             : `<div class="until">${esc(t("ptsUntil"))}<b>${maxGross} ${esc(t("strokesWord"))}</b></div>`)
+    : `<div class="until"><b>${esc(projText(a))}</b></div>`;
   const penTxt = h.p===0 ? "" : `<span class="pen">${esc(h.p===1?t("penOne"):tf("penMany",{n:h.p}))}</span>`;
   const penBtn = d => `<button class="pen-btn ${d.top?"top":""}" onclick="addPen('${d.id}',${d.n})">${esc(t(d.k))}<small>+${d.n}</small>${d.rule?`<span class="info" onclick="event.stopPropagation();openRule('${d.rule}')" role="button" aria-label="Info">i</span>`:""}</button>`;
+  const projLine = f==="stb" ? `<div class="muted small">${esc(projText(a))}</div>` : "";
+  const oppLine = f==="mp" && a.opp ? ` \u00b7 vs ${esc(a.opp)}` : "";
   app.innerHTML = `
     <div class="hole-head">
-      <div><div class="num">${esc(t("hole"))} ${h.no}<span class="muted" style="font-weight:600;font-size:1rem"> / ${a.holes[a.holes.length-1].no}</span></div>
-      <div class="sub">${esc(t("par"))} ${h.par} · ${esc(t("si"))} ${h.si} · ${esc(recvTxt)}</div></div>
-      <div class="pts"><div class="muted">${esc(t("roundPts"))}</div><b>${donePts} ${esc(t("ptsShort"))}</b></div>
+      <div><div class="num">${esc(t("hole"))} ${h.no}<span class="muted" style="font-weight:600;font-size:1rem"> (${a.cur+1}/${a.holes.length})</span></div>
+      <div class="sub">${esc(t("par"))} ${h.par} \u00b7 ${esc(t("si"))} ${h.si} \u00b7 ${esc(recvTxt)}${oppLine}</div></div>
+      <div class="pts"><div class="muted">${esc(t("roundPts"))}</div><b>${esc(mainTotal(a))}</b>${projLine}</div>
     </div>
     <div class="counter">
       <div><div class="muted small">${esc(t("strokesThisHole"))}</div><span class="n">${strokes}</span> ${penTxt}</div>
@@ -468,14 +543,15 @@ function renderPlay(){
     </div>
     <div class="ballwrap"><button class="ball" onclick="addStroke()" aria-label="${esc(t("stroke"))}">${esc(t("stroke"))}</button></div>
     <div class="pen-grid">${PEN_TOP.map(d=>penBtn({...d,top:true})).join("")}${PEN_MID.map(d=>penBtn(d)).join("")}</div>
-    <details class="more"><summary>${esc(t("more"))} ▾</summary>
+    <details class="more"><summary>${esc(t("more"))} \u25be</summary>
       <div class="pen-grid">${PEN_MORE.map(d=>penBtn(d)).join("")}</div>
     </details>
-    <div class="util-grid">
-      <button onclick="undo()">↩ ${esc(t("undo"))}</button>
-      <button onclick="askPickup()">✕ ${esc(t("pickup"))}</button>
+    <div class="util-grid" style="grid-template-columns:1fr 1fr 1fr">
+      <button onclick="undo()">\u21a9 ${esc(t("undo"))}</button>
+      <button onclick="noteModal()">\u270e ${esc(t("noteBtn"))}${h.note?" \u2022":""}</button>
+      <button onclick="askPickup()">\u2715 ${esc(t("pickup"))}</button>
     </div>
-    <button class="btn-primary btn-block done-btn" onclick="askDone()">✓ ${esc(t("holeDone"))}</button>
+    <button class="btn-primary btn-block done-btn" onclick="askDone()">\u2713 ${esc(t("holeDone"))}</button>
     <div style="text-align:center;margin-top:14px"><button class="btn-ghost small" onclick="askCancelRound()">${esc(t("cancelRound"))}</button></div>`;
 }
 function addStroke(){ const h=cur(); h.s++; h.log.push("s"); buzz(15); save(); renderPlay(); }
@@ -488,46 +564,99 @@ function undo(){
   else if(last==="p2") h.p=Math.max(0,h.p-2);
   buzz(10); save(); renderPlay();
 }
+function noteModal(){
+  const h=cur();
+  modal(`<h3>${esc(tf("noteTitle",{h:h.no}))}</h3>
+    <textarea id="nt" rows="3" placeholder="${esc(t("notePh"))}">${esc(h.note||"")}</textarea>
+    <div class="util-grid" style="margin-top:10px"><button onclick="closeModal()">${esc(t("back"))}</button>
+    <button class="btn-primary" onclick="saveNote()">${esc(t("save"))}</button></div>`);
+}
+function saveNote(){ cur().note = document.getElementById("nt").value.trim(); save(); closeModal(); renderPlay(); }
 function askPickup(){
   modal(`<h3>${esc(t("pickupTitle"))}</h3><p class="muted">${esc(t("pickupMsg"))}</p>
     <div class="util-grid"><button onclick="closeModal()">${esc(t("back"))}</button>
     <button class="btn-danger-soft" onclick="doPickup()">${esc(t("confirm"))}</button></div>`);
 }
-function doPickup(){ finishHole(true); closeModal(); }
+function doPickup(){ closeModal(); finishHole(true, "l"); }
 function askDone(){
-  const h=cur(); const gross=h.s+h.p;
+  const a=S.active, h=cur(); const gross=h.s+h.p;
   if(h.s===0){ modal(`<p>${esc(t("needStroke"))}</p><button class="btn-block" onclick="closeModal()">${esc(t("back"))}</button>`); return; }
-  const pts = holePoints(h.par,h.recv,gross,false);
+  const f=a.format||"stb";
   const sTxt = gross===1?t("strokesOne"):tf("strokesN",{n:gross});
   const pTxt = h.p===0?"":`<div class="muted" style="text-align:center">${esc(h.p===1?t("ofWhichPenOne"):tf("ofWhichPen",{n:h.p}))}</div>`;
-  const ptTxt = pts===1?t("ptsOne"):tf("ptsN",{n:pts});
+  if(f==="mp"){
+    modal(`<h3>${esc(tf("confirmHole",{h:h.no}))}</h3>
+      <div class="confirm-big">${esc(sTxt)}</div>${pTxt}
+      <p class="muted" style="text-align:center">${esc(t("mpQ"))}${a.opp?` (vs ${esc(a.opp)})`:""}</p>
+      <div class="util-grid" style="grid-template-columns:1fr 1fr 1fr">
+        <button class="btn-primary" onclick="doDoneRes('w')">${esc(t("mpWon"))}</button>
+        <button onclick="doDoneRes('h')">${esc(t("mpHalf"))}</button>
+        <button class="btn-danger-soft" onclick="doDoneRes('l')">${esc(t("mpLost"))}</button>
+      </div>
+      <button class="btn-ghost btn-block small" style="margin-top:8px" onclick="closeModal()">${esc(t("back"))}</button>`);
+    return;
+  }
+  let resTxt;
+  if(f==="stb"){ const pts=holePoints(h.par,h.recv,gross,false); resTxt = pts===1?t("ptsOne"):tf("ptsN",{n:pts}); }
+  else if(f==="str"){ resTxt = sgn(gross - h.recv - h.par)+" "+t("netLabel"); }
+  else { const pb=Math.sign(h.par+h.recv-gross); resTxt = sgn(pb); }
   modal(`<h3>${esc(tf("confirmHole",{h:h.no}))}</h3>
-    <div class="confirm-big">${esc(sTxt)}<span class="arrow">→</span><span class="p">${esc(ptTxt)}</span></div>${pTxt}
+    <div class="confirm-big">${esc(sTxt)}<span class="arrow">\u2192</span><span class="p">${esc(resTxt)}</span></div>${pTxt}
     <div class="util-grid" style="margin-top:16px"><button onclick="closeModal()">${esc(t("back"))}</button>
     <button class="btn-primary" onclick="doDone()">${esc(t("confirm"))}</button></div>`);
 }
-function doDone(){ finishHole(false); closeModal(); }
-function finishHole(pickedUp){
-  const h=cur(); const gross=h.s+h.p;
+function doDone(){ closeModal(); finishHole(false); }
+function doDoneRes(r){ closeModal(); finishHole(false, r); }
+function finishHole(pickedUp, mpRes){
+  const a=S.active, h=cur(); const gross=h.s+h.p;
   h.done=true; h.pickedUp=pickedUp;
   h.pts = holePoints(h.par,h.recv,gross,pickedUp);
-  S.active.cur++;
-  if(S.active.cur >= S.active.holes.length){
-    const a=S.active;
+  h.pb = pickedUp ? -1 : Math.sign(h.par + h.recv - gross);
+  if((a.format||"stb")==="mp") h.mp = pickedUp ? "l" : (mpRes||"h");
+  a.cur++;
+  if(a.cur >= a.holes.length){
     S.rounds.unshift({ id:uid(), date:new Date().toISOString().slice(0,10), courseName:a.courseName,
-      hcp:a.hcp, seg:a.seg, holes:a.holes.map(x=>({no:x.no,par:x.par,si:x.si,recv:x.recv,s:x.s,p:x.p,pts:x.pts,pickedUp:!!x.pickedUp})) });
+      hcp:a.hcp, seg:a.seg, format:a.format||"stb", opp:a.opp||"",
+      holes:a.holes.map(x=>({no:x.no,par:x.par,si:x.si,recv:x.recv,s:x.s,p:x.p,pts:x.pts,pb:x.pb,mp:x.mp||null,note:x.note||"",pickedUp:!!x.pickedUp})) });
+    if(S.rounds.length % 5 === 0) pendingBackup = true;
   }
   buzz(30); save(); renderPlay();
+  if(pendingBackup && a.cur >= a.holes.length){
+    pendingBackup = false;
+    modal(`<h3>${esc(t("backupTitle"))}</h3><p class="muted">${esc(tf("backupMsg",{n:S.rounds.length}))}</p>
+      <div class="util-grid"><button onclick="closeModal()">${esc(t("later"))}</button>
+      <button class="btn-primary" onclick="exportData();closeModal()">${esc(t("exportData"))}</button></div>`);
+  }
+}
+function shareText(r){
+  const o = { holes:r.holes, format:r.format||"stb", cur:undefined };
+  const rt = roundTotals(o), f = r.format||"stb";
+  let res;
+  if(f==="stb") res = rt.pts+" "+t("ptsShort");
+  else if(f==="str") res = t("netLabel")+" "+sgn(rt.netDiff)+" ("+rt.net+")";
+  else if(f==="pb") res = sgn(rt.pb);
+  else res = rt.w+"-"+rt.l+(r.opp?" vs "+r.opp:"");
+  return "\u26f3 "+r.courseName+" \u00b7 "+r.date+" \u00b7 "+t("hcpLabel")+" "+r.hcp+"\n"+fmtName(f)+": "+res;
+}
+function shareRound(id){
+  const r = id==="active" ? S.rounds[0] : S.rounds.find(x=>x.id===id);
+  if(!r) return;
+  const txt = shareText(r);
+  if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>modal(`<p>${esc(t("copied"))}</p><button class="btn-block" onclick="closeModal()">OK</button>`)).catch(()=>{});
+  }
 }
 function renderFinished(){
-  const a=S.active; const tot=a.holes.reduce((s,x)=>s+x.pts,0);
+  const a=S.active;
+  const disp = mainTotal({holes:a.holes, format:a.format, cur:a.cur});
   app.innerHTML = `<div style="text-align:center;padding:40px 0">
-    <div style="font-size:3rem">⛳</div>
+    <div style="font-size:3rem">\u26f3</div>
     <h1 style="margin:.4rem 0">${esc(t("roundDone"))}</h1>
-    <p class="muted">${esc(a.courseName)} · ${esc(t("hcpLabel"))} ${a.hcp}</p>
-    <div style="font-size:3.2rem;font-weight:800;color:var(--green);margin:10px 0">${tot}</div>
-    <p class="muted" style="margin-top:0">${esc(t("totalPts"))}</p>
-    <button class="btn-block" style="margin-top:18px" onclick="go('card')">${esc(t("viewCard"))}</button>
+    <p class="muted">${esc(a.courseName)} \u00b7 ${esc(fmtName(a.format))} \u00b7 ${esc(t("hcpLabel"))} ${a.hcp}</p>
+    <div style="font-size:2.6rem;font-weight:800;color:var(--green);margin:10px 0">${esc(disp)}</div>
+    <button class="btn-block" style="margin-top:14px" onclick="shareRound('active')">\u2197 ${esc(t("share"))}</button>
+    <button class="btn-block" style="margin-top:10px" onclick="go('card')">${esc(t("viewCard"))}</button>
     <button class="btn-primary btn-block" style="margin-top:10px" onclick="endActive()">${esc(t("newRound"))}</button>
   </div>`;
 }
@@ -548,70 +677,177 @@ function renderStart(){
   const opts = S.courses.map(c=>`<option value="${c.id}">${esc(c.name)} (${c.holes.length} ${esc(t("holesLabel"))})</option>`).join("");
   app.innerHTML = `<h1>${esc(t("startRound"))}</h1><div class="card">
     <label>${esc(t("course"))}</label><select id="st-course" onchange="startSeg()">${opts}</select>
+    <label>${esc(t("fmt"))}</label>
+    <select id="st-fmt" onchange="startSeg()">
+      <option value="stb">${esc(t("fStb"))}</option><option value="str">${esc(t("fStr"))}</option>
+      <option value="pb">${esc(t("fPb"))}</option><option value="mp">${esc(t("fMp"))}</option></select>
+    <div id="st-opp-wrap" style="display:none"><label>${esc(t("oppName"))}</label><input id="st-opp" placeholder="Max"></div>
     <div id="st-seg"></div>
-    <label>${esc(t("courseHcp"))}</label>
-    <input id="st-hcp" type="number" inputmode="numeric" min="0" max="54" value="${S.lastHcp}">
-    <p class="muted">${esc(t("hcpHint"))}</p>
-    <button class="btn-primary btn-block done-btn" style="margin-top:8px" onclick="startRound()">${esc(t("begin"))}</button>
+    <label>${esc(t("hcp18"))}</label>
+    <input id="st-hcp" type="number" inputmode="numeric" min="0" max="54" value="${S.lastHcp}" oninput="hcpCalc()">
+    <div id="st-hcp9-wrap" style="display:none">
+      <label>${esc(t("hcpUsed"))}</label>
+      <input id="st-hcp9" type="number" inputmode="numeric" min="0" max="54">
+      <p class="muted" style="margin-top:4px">${esc(t("hcpAuto"))}</p>
+    </div>
+    <button class="btn-primary btn-block done-btn" style="margin-top:14px" onclick="startRound()">${esc(t("begin"))}</button>
   </div><p class="muted">${esc(t("installHint"))}</p>`;
   startSeg();
 }
+function segHoles(c, seg){
+  let hs = c.holes.map((h,i)=>({no:i+1, par:h.par, si:h.si}));
+  if(seg==="f9") hs = hs.slice(0,9); else if(seg==="b9") hs = hs.slice(9);
+  return hs;
+}
 function startSeg(){
   const c = S.courses.find(x=>x.id===document.getElementById("st-course").value);
+  if(!c) return;
   const el = document.getElementById("st-seg");
-  el.innerHTML = (c && c.holes.length===18) ? `<label>${esc(t("holesToPlay"))}</label>
-    <select id="st-which"><option value="all">${esc(t("all18"))}</option>
-    <option value="f9">${esc(t("front9"))}</option><option value="b9">${esc(t("back9"))}</option></select>` : "";
+  const prevSeg = document.getElementById("st-which") ? document.getElementById("st-which").value : "all";
+  const prevStart = document.getElementById("st-start") ? document.getElementById("st-start").value : "0";
+  const segSel = (c.holes.length===18) ? `<label>${esc(t("holesToPlay"))}</label>
+    <select id="st-which" onchange="startSeg()"><option value="all"${prevSeg==="all"?" selected":""}>${esc(t("all18"))}</option>
+    <option value="f9"${prevSeg==="f9"?" selected":""}>${esc(t("front9"))}</option>
+    <option value="b9"${prevSeg==="b9"?" selected":""}>${esc(t("back9"))}</option></select>` : "";
+  const seg = c.holes.length===18 ? prevSeg : "all";
+  const hs = segHoles(c, seg);
+  const startOpts = hs.map((h,i)=>`<option value="${i}"${String(i)===prevStart?" selected":""}>${h.no}</option>`).join("");
+  el.innerHTML = segSel + `<label>${esc(t("startAt"))}</label><select id="st-start">${startOpts}</select>`;
+  const opp = document.getElementById("st-opp-wrap");
+  opp.style.display = document.getElementById("st-fmt").value==="mp" ? "" : "none";
+  hcpCalc();
+}
+function hcpCalc(){
+  const c = S.courses.find(x=>x.id===document.getElementById("st-course").value);
+  if(!c) return;
+  const whichEl = document.getElementById("st-which");
+  const seg = whichEl ? whichEl.value : "all";
+  const n = segHoles(c, seg).length;
+  const wrap = document.getElementById("st-hcp9-wrap");
+  const h18 = Math.max(0, Math.min(54, parseInt(document.getElementById("st-hcp").value||"0",10)||0));
+  if(n===9){ wrap.style.display=""; document.getElementById("st-hcp9").value = Math.round(h18/2); }
+  else wrap.style.display="none";
 }
 function startRound(){
   const c = S.courses.find(x=>x.id===document.getElementById("st-course").value);
   if(!c) return;
-  const hcp = Math.max(0, Math.min(54, parseInt(document.getElementById("st-hcp").value||"0",10)||0));
-  S.lastHcp = hcp;
+  const h18 = Math.max(0, Math.min(54, parseInt(document.getElementById("st-hcp").value||"0",10)||0));
+  S.lastHcp = h18;
   const whichEl = document.getElementById("st-which");
   const seg = whichEl ? whichEl.value : "all";
-  let hs = c.holes.map((h,i)=>({no:i+1, par:h.par, si:h.si}));
-  if(seg==="f9") hs = hs.slice(0,9); else if(seg==="b9") hs = hs.slice(9);
-  const rm = recvMap(hs, hcp);
-  S.active = { courseName:c.name, hcp, seg, cur:0,
-    holes: hs.map((h,i)=>({...h, recv:rm[i], s:0, p:0, pts:0, done:false, log:[]})) };
+  let hs = segHoles(c, seg);
+  const n = hs.length;
+  let hcpUsed = h18;
+  if(n===9){
+    const v = parseInt((document.getElementById("st-hcp9")||{}).value||"",10);
+    hcpUsed = isNaN(v) ? Math.round(h18/2) : Math.max(0, Math.min(54, v));
+  }
+  const k = parseInt((document.getElementById("st-start")||{}).value||"0",10)||0;
+  const rm = recvMap(hs, hcpUsed);
+  let holes = hs.map((h,i)=>({...h, recv:rm[i], s:0, p:0, pts:0, done:false, log:[], note:""}));
+  if(k>0) holes = holes.slice(k).concat(holes.slice(0,k));
+  const fmt = document.getElementById("st-fmt").value;
+  const opp = fmt==="mp" ? ((document.getElementById("st-opp")||{}).value||"").trim() : "";
+  S.active = { courseName:c.name, hcp:hcpUsed, hcp18:h18, seg, format:fmt, opp, cur:0, holes };
   save(); render();
 }
 /* ================= SCORECARD ================= */
-function roundTable(holes, seg){
+function resCol(f){ return {stb:t("colPts"), str:t("colNet"), pb:t("colPb"), mp:t("colMp")}[f||"stb"]; }
+function resVal(f,h){
+  if(h.pickedUp && f!=="mp") return "\u2013";
+  if((f||"stb")==="stb") return h.pts;
+  if(f==="str") return sgn(h.s+h.p-h.recv-h.par);
+  if(f==="pb") return sgn(h.pb||0);
+  return h.mp==="w"?"\u2713":(h.mp==="l"?"\u2717":"=");
+}
+function resSum(f,arr){
+  const o = {holes:arr, format:f, cur:undefined};
+  const r = roundTotals(o);
+  if((f||"stb")==="stb") return r.pts;
+  if(f==="str") return sgn(r.netDiff);
+  if(f==="pb") return sgn(r.pb);
+  return r.w+"\u2013"+r.l;
+}
+function roundTable(holes, fmt){
+  const f = fmt||"stb";
   const row = h => `<tr><td>${h.no}</td><td>${h.par}</td><td>${h.si}</td>
-    <td>${h.pickedUp ? "–" : h.s+h.p}${h.pickedUp?` <span class="muted small">(${esc(t("pickedUp"))})</span>`:""}</td>
-    <td>${h.p||""}</td><td class="pts-cell">${h.pts}</td></tr>`;
+    <td>${h.pickedUp ? `\u2013 <span class="muted small">(${esc(t("pickedUp"))})</span>` : h.s+h.p}</td>
+    <td>${h.p||""}</td><td class="pts-cell">${resVal(f,h)}</td></tr>`;
   const sum = (arr,label) => `<tr class="sum"><td colspan="3">${esc(label)}</td>
     <td>${arr.filter(h=>!h.pickedUp).reduce((s,h)=>s+h.s+h.p,0)}</td>
-    <td>${arr.reduce((s,h)=>s+h.p,0)||""}</td><td>${arr.reduce((s,h)=>s+h.pts,0)}</td></tr>`;
+    <td>${arr.reduce((s,h)=>s+h.p,0)||""}</td><td>${resSum(f,arr)}</td></tr>`;
   let body="";
-  if(holes.length===18){
+  const splittable = holes.length===18 && holes[0].no===1 && holes[9] && holes[9].no===10;
+  if(splittable){
     body = holes.slice(0,9).map(row).join("") + sum(holes.slice(0,9), t("out"))
          + holes.slice(9).map(row).join("") + sum(holes.slice(9), t("inn"))
          + sum(holes, t("total"));
   } else {
     body = holes.map(row).join("") + sum(holes, t("total"));
   }
+  const notes = holes.filter(h=>h.note).map(h=>`<div class="muted small" style="text-align:left;margin-top:4px">\u270e ${esc(t("hole"))} ${h.no}: ${esc(h.note)}</div>`).join("");
   return `<table><thead><tr><th>${esc(t("hole"))}</th><th>${esc(t("par"))}</th><th>${esc(t("si"))}</th>
-    <th>${esc(t("colStrokes"))}</th><th>${esc(t("colPen"))}</th><th>${esc(t("colPts"))}</th></tr></thead><tbody>${body}</tbody></table>`;
+    <th>${esc(t("colStrokes"))}</th><th>${esc(t("colPen"))}</th><th>${esc(resCol(f))}</th></tr></thead><tbody>${body}</tbody></table>${notes}`;
+}
+function renderStats(){
+  if(S.rounds.length===0) return "";
+  const stb = S.rounds.filter(r=>(r.format||"stb")==="stb");
+  const pts = r => r.holes.reduce((s,h)=>s+h.pts,0);
+  const avg = arr => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1) : null;
+  const a18 = avg(stb.filter(r=>r.holes.length===18).map(pts));
+  const a9 = avg(stb.filter(r=>r.holes.length===9).map(pts));
+  const penAvg = avg(S.rounds.map(r=>r.holes.reduce((s,h)=>s+h.p,0)));
+  const totalHoles = S.rounds.reduce((s,r)=>s+r.holes.length,0);
+  const pickups = S.rounds.reduce((s,r)=>s+r.holes.filter(h=>h.pickedUp).length,0);
+  const last = stb.slice(0,10).reverse();
+  const maxP = Math.max(1, ...last.map(pts));
+  const bars = last.map(r=>{ const p=pts(r);
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+      <div style="font-size:.68rem;font-weight:700;color:var(--green)">${p}</div>
+      <div style="width:70%;height:${Math.max(6, Math.round(54*p/maxP))}px;background:var(--green);border-radius:4px 4px 0 0;opacity:${r.holes.length===18?1:.55}"></div>
+      <div style="font-size:.6rem;color:var(--ink-3)">${r.holes.length}L</div></div>`; }).join("");
+  const byCourse = {};
+  stb.forEach(r=>{ (byCourse[r.courseName]=byCourse[r.courseName]||[]).push(pts(r)); });
+  const courseRows = Object.entries(byCourse).map(([n,arr])=>
+    `<div class="row" style="justify-content:space-between;padding:4px 0"><span class="small">${esc(n)} <span class="muted">(${arr.length})</span></span><b class="small">${avg(arr)}</b></div>`).join("");
+  const holeAgg = {};
+  stb.forEach(r=>r.holes.forEach(h=>{ const k=r.courseName+"|"+h.no; (holeAgg[k]=holeAgg[k]||[]).push(h.pts); }));
+  const worst = Object.entries(holeAgg).filter(([k,v])=>v.length>=2)
+    .map(([k,v])=>({k, avg:v.reduce((a,b)=>a+b,0)/v.length, n:v.length}))
+    .sort((x,y)=>x.avg-y.avg).slice(0,3);
+  const worstRows = worst.length ? worst.map(w=>{ const [cn,no]=w.k.split("|");
+    return `<div class="row" style="justify-content:space-between;padding:4px 0"><span class="small">${esc(cn)} \u00b7 ${esc(t("hole"))} ${no}</span><b class="small" style="color:var(--red)">\u00d8 ${w.avg.toFixed(1)} ${esc(t("ptsShort"))}</b></div>`; }).join("")
+    : `<p class="muted small" style="margin:4px 0">${esc(t("stWorstHint"))}</p>`;
+  const kpi = (label,val) => val===null ? "" : `<div style="text-align:center;flex:1"><div style="font-size:1.3rem;font-weight:800;color:var(--green)">${val}</div><div class="muted" style="font-size:.68rem">${esc(label)}</div></div>`;
+  return `<h2>${esc(t("statsTitle"))}</h2><div class="card">
+    ${last.length ? `<div class="muted small" style="margin-bottom:4px">${esc(t("stTrend"))}</div>
+    <div style="display:flex;align-items:flex-end;gap:4px;min-height:80px">${bars}</div>` : ""}
+    <div class="row" style="margin-top:12px">${kpi(t("stAvg18"),a18)}${kpi(t("stAvg9"),a9)}${kpi(t("stPen"),penAvg)}${kpi(t("stPickup"), pickups+" ("+Math.round(100*pickups/totalHoles)+"%)")}</div>
+    ${courseRows ? `<div class="muted small" style="margin:12px 0 2px;border-top:1px solid var(--line);padding-top:10px">${esc(t("stCourses"))}</div>${courseRows}` : ""}
+    <div class="muted small" style="margin:12px 0 2px;border-top:1px solid var(--line);padding-top:10px">${esc(t("stWorst"))}</div>${worstRows}
+  </div>`;
 }
 function renderCard(){
   let html = `<h1>${esc(t("tabCard"))}</h1>`;
   if(S.active){
     const done = S.active.holes.filter(h=>h.done);
-    html += `<h2>${esc(t("currentRound"))} · ${esc(S.active.courseName)} · ${esc(t("hcpLabel"))} ${S.active.hcp}</h2>
-      <div class="card" style="padding:8px 10px">${done.length ? roundTable(done, S.active.seg) : `<p class="muted" style="margin:8px">–</p>`}</div>`;
+    html += `<h2>${esc(t("currentRound"))} \u00b7 ${esc(S.active.courseName)} \u00b7 ${esc(fmtName(S.active.format))} \u00b7 ${esc(t("hcpLabel"))} ${S.active.hcp}</h2>
+      <div class="card" style="padding:8px 10px">${done.length ? roundTable(done, S.active.format) : `<p class="muted" style="margin:8px">\u2013</p>`}</div>`;
   }
+  html += renderStats();
   html += `<h2>${esc(t("history"))}</h2>`;
   if(S.rounds.length===0) html += `<p class="muted">${esc(t("noRounds"))}</p>`;
   else html += S.rounds.map(r=>{
-    const tot = r.holes.reduce((s,h)=>s+h.pts,0);
-    return `<details class="rule"><summary><span>${esc(r.date)} · ${esc(r.courseName)}<br>
-      <span class="muted small" style="font-weight:400">${esc(t("hcpLabel"))} ${r.hcp} · ${r.holes.length} ${esc(t("holesLabel"))}</span></span>
-      <span class="badge b-free" style="font-size:.9rem">${tot} ${esc(t("ptsShort"))}</span></summary>
-      <div class="body" style="white-space:normal">${roundTable(r.holes, r.seg)}
-      <button class="btn-danger-soft btn-block small" style="margin-top:10px" onclick="askDelRound('${r.id}')">${esc(t("deleteRound"))}</button></div></details>`;
+    const f = r.format||"stb";
+    const tot = resSum(f, r.holes);
+    return `<details class="rule"><summary><span>${esc(r.date)} \u00b7 ${esc(r.courseName)}<br>
+      <span class="muted small" style="font-weight:400">${esc(fmtName(f))} \u00b7 ${esc(t("hcpLabel"))} ${r.hcp} \u00b7 ${r.holes.length} ${esc(t("holesLabel"))}${r.opp?` \u00b7 vs ${esc(r.opp)}`:""}</span></span>
+      <span class="badge b-free" style="font-size:.9rem">${tot}${f==="stb"?" "+esc(t("ptsShort")):""}</span></summary>
+      <div class="body" style="white-space:normal">${roundTable(r.holes, f)}
+      <div class="util-grid" style="margin-top:10px">
+        <button class="small" onclick="shareRound('${r.id}')">\u2197 ${esc(t("share"))}</button>
+        <button class="btn-danger-soft small" onclick="askDelRound('${r.id}')">${esc(t("deleteRound"))}</button>
+      </div></div></details>`;
   }).join("");
   app.innerHTML = html;
 }
