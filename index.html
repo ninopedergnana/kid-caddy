@@ -177,7 +177,7 @@ body.modal-open #modal{touch-action:pan-y}
 <div id="modal-bg"><div id="modal"></div></div>
 <script>
 "use strict";
-const APP_VERSION = "1.5";
+const APP_VERSION = "1.7";
 /* Preloaded Swiss courses. flag: null = verified, "si" = stroke index unverified, "fill" = hole data not public, user completes */
 const PRELOADED = [
  { name:"Golfclub Interlaken-Unterseen", flag:null,
@@ -251,6 +251,7 @@ de: {
   stPen:"Ø Strafschläge pro Runde", stPickup:"Gestrichene Löcher", stCourses:"Ø Punkte pro Platz",
   stWorst:"Deine teuersten Löcher", stWorstHint:"ab 2 Stableford-Runden auf demselben Platz",
   backupTitle:"Kurz sichern?", backupMsg:"Das war deine {n}. Runde – ein guter Moment für ein Backup deiner Daten.", later:"Später",
+  plausiWarn:"Kontrolle: Nur {s} Schläge mit dem Ball-Button erfasst. Nach einer Strafe zählt jeder weitere Schlag wieder normal über den Ball-Button – auch der Schlag, der ins Aus/Wasser ging, zählt.",
   searchPh:"Bio-Zone, Weg, roter Pfahl …", fAll:"Alle", fPen:"Mit Strafe", fFree:"Straflos",
   bP1:"+1 Schlag", bP2:"+2 Schläge", bFree:"Straflos", bDep:"Je nach Fall", bInfo:"Gut zu wissen",
   noRuleFound:"Nichts gefunden.",
@@ -324,6 +325,7 @@ en: {
   stPen:"Avg penalty strokes per round", stPickup:"Picked-up holes", stCourses:"Avg points per course",
   stWorst:"Your most expensive holes", stWorstHint:"from 2+ Stableford rounds on the same course",
   backupTitle:"Quick backup?", backupMsg:"That was round no. {n} \u2013 a good moment to back up your data.", later:"Later",
+  plausiWarn:"Check: only {s} strokes recorded with the ball button. After a penalty, every further swing still counts via the ball button \u2013 the stroke that went OB/in the water counts too.",
   searchPh:"Bio zone, cart path, red stakes …", fAll:"All", fPen:"With penalty", fFree:"Free relief",
   bP1:"+1 stroke", bP2:"+2 strokes", bFree:"Free", bDep:"It depends", bInfo:"Good to know",
   noRuleFound:"Nothing found.",
@@ -397,6 +399,7 @@ fr: {
   stPen:"Moy. pénalités par partie", stPickup:"Trous ramassés", stCourses:"Moy. points par parcours",
   stWorst:"Tes trous les plus coûteux", stWorstHint:"dès 2 parties Stableford sur le même parcours",
   backupTitle:"Petite sauvegarde ?", backupMsg:"C'était ta partie n° {n} \u2013 le bon moment pour sauvegarder tes données.", later:"Plus tard",
+  plausiWarn:"Contr\u00f4le : seulement {s} coups saisis avec le bouton balle. Apr\u00e8s une p\u00e9nalit\u00e9, chaque coup suivant compte normalement via le bouton balle \u2013 le coup parti hors limites/\u00e0 l'eau compte aussi.",
   searchPh:"Zone bio, chemin, piquets rouges …", fAll:"Tout", fPen:"Avec pénalité", fFree:"Sans pénalité",
   bP1:"+1 coup", bP2:"+2 coups", bFree:"Sans pénalité", bDep:"Selon le cas", bInfo:"Bon à savoir",
   noRuleFound:"Rien trouvé.",
@@ -527,7 +530,7 @@ function renderPlay(){
     ? (noPts ? `<div class="until warn"><b>${esc(t("noPtsLeft"))}</b>${esc(t("pickupHint"))}</div>`
              : `<div class="until">${esc(t("ptsUntil"))}<b>${maxGross} ${esc(t("strokesWord"))}</b></div>`)
     : `<div class="until"><b>${esc(projText(a))}</b></div>`;
-  const penTxt = h.p===0 ? "" : `<span class="pen">${esc(h.p===1?t("penOne"):tf("penMany",{n:h.p}))}</span>`;
+  const penTxt = h.p===0 ? "" : `<span class="pen">${esc(h.p===1?t("ofWhichPenOne"):tf("ofWhichPen",{n:h.p}))}</span>`;
   const penBtn = d => `<button class="pen-btn ${d.top?"top":""}" onclick="addPen('${d.id}',${d.n})">${esc(t(d.k))}<small>+${d.n}</small>${d.rule?`<span class="info" onclick="event.stopPropagation();openRule('${d.rule}')" role="button" aria-label="Info">i</span>`:""}</button>`;
   const projLine = f==="stb" ? `<div class="muted small">${esc(projText(a))}</div>` : "";
   const oppLine = f==="mp" && a.opp ? ` \u00b7 vs ${esc(a.opp)}` : "";
@@ -582,11 +585,13 @@ function askDone(){
   const a=S.active, h=cur(); const gross=h.s+h.p;
   if(h.s===0){ modal(`<p>${esc(t("needStroke"))}</p><button class="btn-block" onclick="closeModal()">${esc(t("back"))}</button>`); return; }
   const f=a.format||"stb";
+  const warn = (h.p>0 && h.s<2) || (gross < h.par-1)
+    ? `<p class="small" style="color:var(--amber);background:var(--amber-bg);border-radius:10px;padding:8px 10px">${esc(tf("plausiWarn",{s:h.s}))}</p>` : "";
   const sTxt = gross===1?t("strokesOne"):tf("strokesN",{n:gross});
   const pTxt = h.p===0?"":`<div class="muted" style="text-align:center">${esc(h.p===1?t("ofWhichPenOne"):tf("ofWhichPen",{n:h.p}))}</div>`;
   if(f==="mp"){
     modal(`<h3>${esc(tf("confirmHole",{h:h.no}))}</h3>
-      <div class="confirm-big">${esc(sTxt)}</div>${pTxt}
+      <div class="confirm-big">${esc(sTxt)}</div>${pTxt}${warn}
       <p class="muted" style="text-align:center">${esc(t("mpQ"))}${a.opp?` (vs ${esc(a.opp)})`:""}</p>
       <div class="util-grid" style="grid-template-columns:1fr 1fr 1fr">
         <button class="btn-primary" onclick="doDoneRes('w')">${esc(t("mpWon"))}</button>
@@ -601,7 +606,7 @@ function askDone(){
   else if(f==="str"){ resTxt = sgn(gross - h.recv - h.par)+" "+t("netLabel"); }
   else { const pb=Math.sign(h.par+h.recv-gross); resTxt = sgn(pb); }
   modal(`<h3>${esc(tf("confirmHole",{h:h.no}))}</h3>
-    <div class="confirm-big">${esc(sTxt)}<span class="arrow">\u2192</span><span class="p">${esc(resTxt)}</span></div>${pTxt}
+    <div class="confirm-big">${esc(sTxt)}<span class="arrow">\u2192</span><span class="p">${esc(resTxt)}</span></div>${pTxt}${warn}
     <div class="util-grid" style="margin-top:16px"><button onclick="closeModal()">${esc(t("back"))}</button>
     <button class="btn-primary" onclick="doDone()">${esc(t("confirm"))}</button></div>`);
 }

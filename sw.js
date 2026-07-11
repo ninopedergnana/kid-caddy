@@ -1,4 +1,4 @@
-const CACHE = "stableford-caddy-v6";
+const CACHE = "stableford-caddy-v8";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
